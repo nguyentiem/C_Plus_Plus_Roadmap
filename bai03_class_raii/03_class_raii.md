@@ -353,13 +353,37 @@ T& operator=(const T& rhs) {
     }
     return *this;
 }
+
+class Buffer {
+private:
+    int* data;
+    std::size_t size;
+
+public:
+    Buffer(std::size_t n)
+        : data(new int[n]), size(n) {}
+
+    Buffer(const Buffer& other)
+        : data(new int[other.size]),
+          size(other.size) {
+        std::copy(
+            other.data,
+            other.data + size,
+            data
+        );
+    }
+
+    ~Buffer() {
+        delete[] data;
+    }
+};
 ```
 
 Đây là **copy-and-swap**, cho strong exception guarantee. Demo dùng `ShallowView` non-owning để chỉ in địa chỉ chung an toàn; không chạy double-free có chủ ý.
 
 > **Kinh nghiệm thực chiến (senior)**
 > - Double-free do copy ngầm hiếm khi lộ tại chỗ copy; nó nổ ở dtor, cách xa hàng nghìn dòng. Khi viết class ôm raw handle, việc ĐẦU TIÊN là quyết định copy: `= delete` hay deep copy — đừng để compiler quyết hộ.
-> - Copy đắt bị giấu là kẻ ăn CPU thầm lặng: truyền `std::vector` by value vào hàm gọi trong vòng lặp, `for (auto item : container)` thiếu `&`. Profile một firmware từng thấy 30% CPU nằm ở copy không chủ ý kiểu này.
+> - Copy đắt bị giấu là kẻ ăn CPU thầm lặng: truyền `std::vector` by value vào hàm gọi trong vòng lặp, `for (auto item : container)` thiếu `&`. Profile một firmware từng thấy 30% CPU nằm ở copy không chủ ý kiểu này. hãy lưu ý truyền reference của class kể cả `for (auto & item : container)`
 > - Phân biệt rõ class **owning** và **viewing** ngay trong tên (`Buffer` vs `BufferView`); trộn lẫn hai vai là nguồn use-after-free khi view sống lâu hơn owner.
 > - Kiểm tra `if (this != &rhs)` không chỉ là hình thức: self-assignment thật sự xảy ra qua alias (`a[i] = a[j]` khi `i == j`, hai reference cùng object qua hai đường gọi).
 
@@ -424,9 +448,19 @@ RAII giải phóng resource trên mọi đường rời scope: return, `break`, 
 ### 14. Composition, inheritance và polymorphism
 
 - **Composition** là quan hệ *has-a*: `Xe` có một `DongCo`. Đây là lựa chọn mặc định vì ownership rõ và giảm coupling.
+chứa object, chưa referece object chứa contro objetc 
+
 - **Inheritance** là *is-a*: `CamBien` là một `IThietBi`. Chỉ dùng khi derived thực sự thay thế được base theo Liskov Substitution Principle.
 - **Virtual function** dispatch runtime qua base reference/pointer. Luôn viết `override`; dùng `final` khi không cho override/derive thêm.
 - **Abstract class** có ít nhất một pure virtual function (`virtual void f() = 0;`) và không tạo object trực tiếp.
+không gọi virtula fucntion trong constructor 
+không nên kế thừa nhiều tầng tăng coupling 
+tạo composition chỉ kết thừ khi lớp con thay thế hoàn toàn lớp cha, nhưng nơi truyền vào lớp cha * hoặc & có hoạt động đúng với lớp con không ? 
+
+vector object nên để là unique_tr thay vì object hoặc con trỏ 
+
+final ngăn overide / ngăn kế thừa 
+vitural tránh việc kế thừa hình thoi 
 
 ```cpp
 class IThietBi {
@@ -473,7 +507,7 @@ Compiler cần nhìn thấy definition của template tại điểm instantiate,
 
 - `std::unique_ptr<T>`: sole ownership, move-only, là lựa chọn mặc định cho heap ownership.
 - `std::shared_ptr<T>`: shared ownership, có control block và overhead atomic tiềm năng.
-- `std::weak_ptr<T>`: reference không sở hữu, dùng để phá cycle của `shared_ptr`.
+- `std::weak_ptr<T>`: reference không sở hữu, dùng để phá **cycle** của `shared_ptr`.
 
 ```cpp
 class HaiTaiNguyen {
