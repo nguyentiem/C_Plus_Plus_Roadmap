@@ -10,7 +10,7 @@
 |-----|--------|----------------|
 | 01 | `bai1_kieu_du_lieu` | Kiểu dữ liệu, khác biệt C vs C++, namespace, overloading, ép kiểu tổng quan |
 | 02 | `bai02_con_tro_tham_chieu` | Con trỏ, tham chiếu, mảng, const pointer vs pointer to const, dangling, nullptr |
-| 03 | `bai03_class_raii` | Class, constructor/destructor, encapsulation, `this`, static/friend, **RAII** |
+| 03 | `bai03_class_raii` | Class/object, access, ctor/dtor, lifetime, copy/move, Rule 0/3/5, RAII, kế thừa/đa hình, class template, smart pointer, exception safety, vtable/layout |
 | 04 | `bai04_stack_heap_lifetime` | Stack/Heap/Static storage, object lifetime, new/delete, leak, fragmentation |
 | 05 | `bai05_compile_process` | Preprocessor → Compiler → Linker, include guard, ODR, name mangling, .text/.data/.bss |
 
